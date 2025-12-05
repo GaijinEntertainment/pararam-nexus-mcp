@@ -496,6 +496,5 @@ chore: update dependencies
 ## Additional Resources
 
 - [FastMCP Documentation](https://github.com/jlowin/fastmcp)
-- pararamio-aio API
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
