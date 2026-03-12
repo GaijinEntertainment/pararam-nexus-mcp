@@ -787,7 +787,7 @@ dev = [
 requires-dist = [
     { name = "fastmcp", specifier = ">=0.1.0" },
     { name = "httpx", specifier = ">=0.24.0" },
-    { name = "pararamio-aio", specifier = "==3.0.6" },
+    { name = "pararamio-aio", specifier = "==3.0.13" },
     { name = "pydantic", specifier = ">=2.0.0" },
 ]
 
@@ -806,14 +806,14 @@ dev = [
 
 [[package]]
 name = "pararamio-aio"
-version = "3.0.6"
+version = "3.0.13"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/ba/1576647dd6c14aa6e206ec480250f9ae353cdd88e8dc99403a7667e47b2f/pararamio_aio-3.0.6.tar.gz", hash = "sha256:fb49f98d405dfb5bf18f694db6166cc43ddd412669b563889acf35714d01bca1", size = 105847, upload-time = "2025-10-13T12:55:42.931Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/27/7750ee9b7750912dfa4aeaab9857251c258dc3d7f977c5ad7c09517db4b3/pararamio_aio-3.0.13.tar.gz", hash = "sha256:b926476e4d3163df9082ff4f7031d215e826e6a31e4bab1ce9e2faf17a1deb8f", size = 107583, upload-time = "2026-03-12T11:32:24.802Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/fd/3a190bedc8f25826261fd1bae926e8051b935750e601701ec97541ca40d1/pararamio_aio-3.0.6-py3-none-any.whl", hash = "sha256:6580616f6ac264eb04af08bd4a02559942f340c83bd993098db928c46a191428", size = 146116, upload-time = "2025-10-13T12:55:41.591Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/f0/0e2dedf09750e87734530fde6d621452ad0b90d10a9b2f09fa155586f4b7/pararamio_aio-3.0.13-py3-none-any.whl", hash = "sha256:49d4069ba59213702ff4af90baca0d89b211b9758dd2f580edfed237053ef4be", size = 147727, upload-time = "2026-03-12T11:32:23.07Z" },
 ]
 
 [[package]]

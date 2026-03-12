@@ -23,7 +23,7 @@ dependencies = [
     "httpx>=0.24.0",
     "pydantic>=2.0.0",
     "fastmcp>=0.1.0",
-    "pararamio-aio==3.0.6",
+    "pararamio-aio==3.0.13",
 ]
 
 [project.urls]

@@ -270,25 +270,27 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
 
             logger.info(f'Searching messages with query: {query}, limit: {limit}, chat_ids: {chat_ids}')
 
-            # Use search_posts which returns tuple[int, AsyncIterator[Post]]
             total_count, posts_iter = await client.client.search_posts(query, limit=limit, chat_ids=chat_ids)
 
-            # Collect posts from iterator
             formatted_results = []
+            loaded_chats: set[int] = set()
             async for post in posts_iter:
-                # Load full post data to get text
                 await post.load()
 
-                # Skip event posts
+                # Load chat data once per chat to get title
+                if post.chat.id not in loaded_chats:
+                    await post.chat.load()
+                    loaded_chats.add(post.chat.id)
+
                 post_type = get_post_type(post)
                 if post_type == 'event':
                     continue
 
                 user_name = 'Unknown'
+                user_id = post.user_id if post.user_id else None
                 if post.meta and 'user' in post.meta:
                     user_name = post.meta['user'].get('name', 'Unknown')
 
-                # Extract primary file info
                 file_info = extract_file_from_post(post)
 
                 formatted_results.append(
@@ -296,8 +298,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                         post_no=post.post_no,
                         text=post.text or '',
                         user_name=user_name,
+                        user_id=user_id,
                         chat_id=post.chat.id,
                         chat_name=post.chat.title or 'Unknown',
+                        time_created=str(post.time_created),
+                        reply_no=post.reply_no,
                         type=post_type,
                         file=file_info,
                     )

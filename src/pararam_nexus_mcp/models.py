@@ -53,8 +53,11 @@ class ChatMessageInfo(BaseModel):
     post_no: int = Field(..., description='Message number')
     text: str = Field(..., description='Message content')
     user_name: str = Field(..., description='Name of the sender')
+    user_id: int | None = Field(None, description='ID of the sender')
     chat_id: int = Field(..., description='ID of the chat')
     chat_name: str = Field(..., description='Name of the chat')
+    time_created: str = Field(..., description='When message was created')
+    reply_no: int | None = Field(None, description='Post number this replies to')
     type: str = Field(default='post', description='Post type: "post", "file", or "event"')
     file: FileInfo | None = Field(
         None, description='File attachment if post is a file type. Use get_post_attachments for additional files'
