@@ -179,10 +179,10 @@ class BuildConversationThreadResponse(BaseModel):
 class UploadFilePayload(BaseModel):
     """Payload for upload_file_to_chat response."""
 
-    file_id: str = Field(..., description='Unique identifier for the file')
+    file_id: str | None = Field(None, description='Unique identifier for the file')
     filename: str = Field(..., description='Name of the uploaded file')
     size: int = Field(..., description='File size in bytes')
-    url: str = Field(..., description='URL to access the file')
+    url: str | None = Field(None, description='URL to access the file')
     chat_id: str = Field(..., description='ID of the chat')
 
 
@@ -276,9 +276,10 @@ class UserInfo(BaseModel):
     id: int = Field(..., description='User ID')
     name: str = Field(..., description="User's display name")
     unique_name: str = Field(..., description="User's unique username")
-    active: bool = Field(..., description='Whether user is active')
+    active: bool | None = Field(None, description='Whether user is active')
     is_bot: bool = Field(..., description='Whether user is a bot')
-    organizations: list[int] = Field(..., description='List of organization IDs')
+    pm_chat_id: int | None = Field(None, description='PM chat ID for direct messaging this user')
+    organizations: list[int] | None = Field(None, description='List of organization IDs')
 
 
 class SearchUsersPayload(BaseModel):

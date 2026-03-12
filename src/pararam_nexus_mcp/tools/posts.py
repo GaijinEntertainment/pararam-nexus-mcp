@@ -345,6 +345,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
             )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while searching messages: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
+            )
 
     @mcp.tool()
     async def get_chat_messages(
@@ -358,7 +365,8 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
         Args:
             chat_id: ID of the chat to get messages from
             limit: Maximum number of messages to return (default: 50)
-            before_message_id: Get messages before this message ID (for pagination, currently not used)
+            before_message_id: Get messages before this message ID (for pagination).
+                If provided, returns messages older than this ID.
 
         Returns:
             ToolResponse with GetChatMessagesPayload containing chat messages including sender, text, and timestamp
@@ -366,7 +374,9 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
         try:
             client = await get_client()
 
-            logger.info(f'Getting messages from chat {chat_id}, limit: {limit}')
+            logger.info(
+                f'Getting messages from chat {chat_id}, limit: {limit}, before_message_id: {before_message_id}'
+            )
 
             # Get chat by ID
             chat = await client.client.get_chat_by_id(int(chat_id))
@@ -376,9 +386,14 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                     error='Chat not found',
                 )
 
-            # Get recent messages using load_posts (negative indices mean from the end)
-            # -limit to -1 means last 'limit' messages
-            messages = await chat.load_posts(start_post_no=-limit, end_post_no=-1)
+            # Load posts: if before_message_id is set, load range ending before it
+            if before_message_id:
+                end_no = int(before_message_id) - 1
+                start_no = max(end_no - limit + 1, 1)
+                messages = await chat.load_posts(start_post_no=start_no, end_post_no=end_no)
+            else:
+                # Get last 'limit' messages
+                messages = await chat.load_posts(start_post_no=-limit, end_post_no=-1)
 
             if not messages:
                 return error_response(
@@ -459,6 +474,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
             )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while getting chat messages: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
+            )
 
     @mcp.tool()
     async def send_message(
@@ -538,6 +560,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while sending message: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
 
     @mcp.tool()
@@ -697,6 +726,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
             )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while building conversation thread: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
+            )
 
     @mcp.tool()
     async def upload_file_to_chat(
@@ -775,17 +811,22 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             reply_no = int(reply_to_message_id) if reply_to_message_id else None
             uploaded_file = await chat.upload_file(upload_path, reply_no=reply_no)
 
+            # Fallback to local file info when API response lacks fields
+            actual_path = Path(upload_path)
+            file_name = uploaded_file.name or actual_path.name
+            file_size = uploaded_file.size or actual_path.stat().st_size
+
             chat_name = chat.title or 'Unknown'
             message_text = (
-                f"File '{uploaded_file.name}' uploaded successfully to chat '{chat_name}' ({uploaded_file.size} bytes)"
+                f"File '{file_name}' uploaded successfully to chat '{chat_name}' ({file_size} bytes)"
             )
 
             return success_response(
                 message=message_text,
                 payload=UploadFilePayload(
                     file_id=uploaded_file.guid,
-                    filename=uploaded_file.name,
-                    size=uploaded_file.size,
+                    filename=file_name,
+                    size=file_size,
                     url=uploaded_file.url,
                     chat_id=chat_id,
                 ),
@@ -826,6 +867,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while uploading file: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
         finally:
             # Clean up temporary file if created
@@ -960,6 +1008,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while getting message from URL: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
 
     @mcp.tool()
@@ -1123,6 +1178,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while getting post attachments: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
 
     @mcp.tool()
@@ -1421,4 +1483,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                 filename='',
                 size=0,
                 mime_type='',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while downloading attachment: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )

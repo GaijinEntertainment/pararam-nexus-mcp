@@ -114,3 +114,10 @@ def register_chat_tools(mcp: FastMCP[None]) -> None:
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
             )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while searching chats: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
+            )

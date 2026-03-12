@@ -65,22 +65,18 @@ def register_user_tools(mcp: FastMCP[None]) -> None:
             # Apply limit
             users = users[:limit]
 
-            # Format results
-            formatted_users = []
-            for user in users:
-                # Load user data
-                await user.load()
-
-                formatted_users.append(
-                    UserInfo(
-                        id=user.id,
-                        name=user.name,
-                        unique_name=user.unique_name,
-                        active=user.active,
-                        is_bot=user.is_bot,
-                        organizations=user.organizations,
-                    )
+            # Format results — use _data dict directly to avoid PararamModelNotLoadedError
+            # when optional fields are missing from search API response
+            formatted_users = [
+                UserInfo(
+                    id=user._data.get('id', 0),
+                    name=user._data.get('name', ''),
+                    unique_name=user._data.get('unique_name', ''),
+                    is_bot=user._data.get('is_bot', False),
+                    pm_chat_id=user._data.get('pm_thread_id'),
                 )
+                for user in users
+            ]
 
             message_text = f"Found {len(formatted_users)} users matching '{query}'"
 
@@ -116,6 +112,13 @@ def register_user_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while searching users: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
 
     @mcp.tool()
@@ -193,6 +196,13 @@ def register_user_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while getting user info: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
 
     @mcp.tool()
@@ -293,4 +303,11 @@ def register_user_tools(mcp: FastMCP[None]) -> None:
             return error_response(
                 message='Network error occurred',
                 error=f'Network error: {e!s}',
+            )
+        except Exception as e:
+            # Top-level handler to prevent MCP server crash on unexpected errors
+            logger.error('Unexpected error while getting team status: %s', e, exc_info=True)
+            return error_response(
+                message='Unexpected error occurred',
+                error=f'Unexpected error: {e!s}',
             )
