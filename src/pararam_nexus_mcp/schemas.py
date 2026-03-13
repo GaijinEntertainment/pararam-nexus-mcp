@@ -53,7 +53,7 @@ class UploadFileToChatInput(BaseModel):
     reply_to_message_id: str | None = Field(None, pattern=r'^\d+$', description='Reply to post number')
 
     @model_validator(mode='after')
-    def validate_file_source(self) -> 'UploadFileToChatInput':
+    def validate_file_source(self) -> UploadFileToChatInput:
         """Validate that only one file source is provided."""
         if self.file_path and self.file_content:
             raise ValueError('Cannot specify both file_path and file_content')

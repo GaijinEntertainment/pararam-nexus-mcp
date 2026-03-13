@@ -374,9 +374,7 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
         try:
             client = await get_client()
 
-            logger.info(
-                f'Getting messages from chat {chat_id}, limit: {limit}, before_message_id: {before_message_id}'
-            )
+            logger.info(f'Getting messages from chat {chat_id}, limit: {limit}, before_message_id: {before_message_id}')
 
             # Get chat by ID
             chat = await client.client.get_chat_by_id(int(chat_id))
@@ -817,9 +815,7 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             file_size = uploaded_file.size or actual_path.stat().st_size
 
             chat_name = chat.title or 'Unknown'
-            message_text = (
-                f"File '{file_name}' uploaded successfully to chat '{chat_name}' ({file_size} bytes)"
-            )
+            message_text = f"File '{file_name}' uploaded successfully to chat '{chat_name}' ({file_size} bytes)"
 
             return success_response(
                 message=message_text,
@@ -1487,7 +1483,14 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
         except Exception as e:
             # Top-level handler to prevent MCP server crash on unexpected errors
             logger.error('Unexpected error while downloading attachment: %s', e, exc_info=True)
-            return error_response(
+            return DownloadAttachmentErrorResponse(
                 message='Unexpected error occurred',
+                success=False,
                 error=f'Unexpected error: {e!s}',
+                chat_id=chat_id,
+                post_no=post_no,
+                file_guid=file_guid,
+                filename='',
+                size=0,
+                mime_type='',
             )

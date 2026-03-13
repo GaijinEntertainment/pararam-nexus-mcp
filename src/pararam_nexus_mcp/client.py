@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 class PararamClient:
     """Wrapper for AsyncPararamio with cookie storage and session management. Singleton."""
 
-    _instance: 'PararamClient | None' = None
+    _instance: PararamClient | None = None
 
-    def __new__(cls) -> 'PararamClient':
+    def __new__(cls) -> PararamClient:
         """Create or return singleton instance."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -33,7 +33,7 @@ class PararamClient:
         self._cookie_manager: AsyncFileCookieManager = AsyncFileCookieManager(str(config.pararam_cookie_file))
         self._initialized: bool = True
 
-    async def __aenter__(self) -> 'PararamClient':
+    async def __aenter__(self) -> PararamClient:
         """Async context manager entry."""
         await self.connect()
         return self

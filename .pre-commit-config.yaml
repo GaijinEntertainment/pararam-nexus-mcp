@@ -15,8 +15,8 @@ repos:
         require_serial: true
 
       - id: ruff-format
-        name: ruff (format)
-        entry: uv run ruff format
+        name: ruff (format check)
+        entry: uv run ruff format --check
         language: system
         types: [python]
         args: [src/]
@@ -58,7 +58,7 @@ repos:
 
 # Configuration
 default_language_version:
-  python: python3.13
+  python: python3.14
 
 # Run on all files by default
 files: ''
