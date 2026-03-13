@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+src/pararam_nexus_mcp/_version.py
 *.py[cod]
 *$py.class
 *.so

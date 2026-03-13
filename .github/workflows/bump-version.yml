@@ -1,0 +1,57 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump:
+    name: Bump version and tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required to read all tags
+
+    - name: Get latest version tag
+      id: current
+      run: |
+        TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+        echo "tag=${TAG:-v0.0.0}" >> $GITHUB_OUTPUT
+        echo "Current version: ${TAG:-v0.0.0}"
+
+    - name: Calculate next version
+      id: next
+      run: |
+        VERSION="${{ steps.current.outputs.tag }}"
+        VERSION="${VERSION#v}"
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+        case "${{ inputs.bump }}" in
+          major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+          minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+          patch) PATCH=$((PATCH + 1)) ;;
+        esac
+
+        NEXT="v${MAJOR}.${MINOR}.${PATCH}"
+        echo "version=$NEXT" >> $GITHUB_OUTPUT
+        echo "Next version: $NEXT"
+
+    - name: Create and push tag
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "${{ steps.next.outputs.version }}" -m "Release ${{ steps.next.outputs.version }}"
+        git push origin "${{ steps.next.outputs.version }}"
+        echo "Tagged and pushed ${{ steps.next.outputs.version }}"
