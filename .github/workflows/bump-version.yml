@@ -18,9 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      version: ${{ steps.next.outputs.version }}
-      version_number: ${{ steps.next.outputs.version_number }}
+      actions: write
 
     steps:
     - uses: actions/checkout@v4
@@ -49,7 +47,6 @@ jobs:
 
         NEXT="v${MAJOR}.${MINOR}.${PATCH}"
         echo "version=$NEXT" >> $GITHUB_OUTPUT
-        echo "version_number=${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
         echo "Next version: $NEXT"
 
     - name: Create and push tag
@@ -59,11 +56,7 @@ jobs:
         git tag -a "${{ steps.next.outputs.version }}" -m "Release ${{ steps.next.outputs.version }}"
         git push origin "${{ steps.next.outputs.version }}"
 
-  release:
-    name: Release
-    needs: bump
-    uses: ./.github/workflows/release.yml
-    with:
-      version: ${{ needs.bump.outputs.version }}
-      version_number: ${{ needs.bump.outputs.version_number }}
-    secrets: inherit
+    - name: Trigger release pipeline
+      run: gh workflow run release.yml -f version=${{ steps.next.outputs.version }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

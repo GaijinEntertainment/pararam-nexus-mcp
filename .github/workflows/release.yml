@@ -4,14 +4,10 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_call:
+  workflow_dispatch:
     inputs:
       version:
         description: 'Version tag (e.g. v0.1.3)'
-        required: true
-        type: string
-      version_number:
-        description: 'Version number without v prefix (e.g. 0.1.3)'
         required: true
         type: string
 
@@ -27,13 +23,13 @@ jobs:
       id: resolve
       run: |
         if [ -n "${{ inputs.version }}" ]; then
-          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
-          echo "version_number=${{ inputs.version_number }}" >> $GITHUB_OUTPUT
+          TAG="${{ inputs.version }}"
         else
           TAG="${GITHUB_REF#refs/tags/}"
-          echo "version=$TAG" >> $GITHUB_OUTPUT
-          echo "version_number=${TAG#v}" >> $GITHUB_OUTPUT
         fi
+        echo "version=$TAG" >> $GITHUB_OUTPUT
+        echo "version_number=${TAG#v}" >> $GITHUB_OUTPUT
+        echo "Releasing: $TAG"
 
   pypi:
     name: Deploy to PyPI
