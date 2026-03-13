@@ -2,6 +2,8 @@ FROM python:3.14-alpine
 
 WORKDIR /app
 
+ARG SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+
 # Install build dependencies needed for some Python packages
 RUN apk add --no-cache git gcc musl-dev python3-dev libffi-dev openssl-dev
 
@@ -12,9 +14,7 @@ COPY pyproject.toml README.md ./
 COPY src/ src/
 
 # Install the package with pip
-# Note: FastMCP requires mcp as a dependency, which brings in web frameworks
-# This is why the build installs many packages like uvicorn, starlette, pyperclip etc.
-RUN pip install --no-cache-dir .
+RUN SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION} pip install --no-cache-dir .
 
 # Default environment variables (will be overridden at runtime)
 ENV MCP_SERVER_NAME="pararam-nexus-mcp"
