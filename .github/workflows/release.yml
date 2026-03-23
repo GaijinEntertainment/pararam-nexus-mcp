@@ -56,6 +56,8 @@ jobs:
       run: |
         uv build --package pararam-nexus-mcp
         uv build --package pararam-nexus-channel
+      env:
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.resolve.outputs.version_number }}
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
@@ -137,6 +139,8 @@ jobs:
       run: |
         uv build --package pararam-nexus-mcp
         uv build --package pararam-nexus-channel
+      env:
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.resolve.outputs.version_number }}
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
