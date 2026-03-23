@@ -23,7 +23,7 @@ dependencies = [
     "httpx>=0.24.0",
     "pydantic>=2.0.0",
     "fastmcp>=0.1.0",
-    "pararamio-aio==3.0.13",
+    "pararamio-aio>=0.1.0",
     "pararamio-bot",
 ]
 
@@ -34,6 +34,7 @@ Issues = "https://github.com/ivolnistov/pararam-nexus-mcp/issues"
 
 [project.scripts]
 pararam-nexus-mcp = "pararam_nexus_mcp.server:main"
+pararam-nexus-channel = "pararam_nexus_mcp.channel_server:main"
 
 [dependency-groups]
 dev = [
@@ -57,6 +58,7 @@ dev = [
 
 [tool.uv.sources]
 pararamio-bot = { path = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_bot", editable = true }
+pararamio-aio = { path = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_aio", editable = true }
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

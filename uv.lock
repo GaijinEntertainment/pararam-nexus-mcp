@@ -851,7 +851,7 @@ dev = [
 requires-dist = [
     { name = "fastmcp", specifier = ">=0.1.0" },
     { name = "httpx", specifier = ">=0.24.0" },
-    { name = "pararamio-aio", specifier = "==3.0.13" },
+    { name = "pararamio-aio", editable = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_aio" },
     { name = "pararamio-bot", editable = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_bot" },
     { name = "pydantic", specifier = ">=2.0.0" },
 ]
@@ -871,15 +871,24 @@ dev = [
 
 [[package]]
 name = "pararamio-aio"
-version = "3.0.13"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.0"
+source = { editable = "../../GITLABCOM/py-pararamio/packages/pararamio_aio" }
 dependencies = [
     { name = "httpx" },
+    { name = "pararamio-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b9/27/7750ee9b7750912dfa4aeaab9857251c258dc3d7f977c5ad7c09517db4b3/pararamio_aio-3.0.13.tar.gz", hash = "sha256:b926476e4d3163df9082ff4f7031d215e826e6a31e4bab1ce9e2faf17a1deb8f", size = 107583, upload-time = "2026-03-12T11:32:24.802Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/f0/0e2dedf09750e87734530fde6d621452ad0b90d10a9b2f09fa155586f4b7/pararamio_aio-3.0.13-py3-none-any.whl", hash = "sha256:49d4069ba59213702ff4af90baca0d89b211b9758dd2f580edfed237053ef4be", size = 147727, upload-time = "2026-03-12T11:32:23.07Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.25.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.18.2" },
+    { name = "pararamio-core", editable = "../../GITLABCOM/py-pararamio/packages/pararamio_core" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.2.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.13.2" },
 ]
+provides-extras = ["dev"]
 
 [[package]]
 name = "pararamio-bot"
@@ -887,6 +896,7 @@ version = "0.1.0"
 source = { editable = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_bot" }
 dependencies = [
     { name = "aiohttp" },
+    { name = "pararamio-aio" },
     { name = "pydantic" },
 ]
 
@@ -894,6 +904,7 @@ dependencies = [
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.9.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.18.2" },
+    { name = "pararamio-aio", editable = "../../GITLABCOM/py-pararamio/packages/pararamio_aio" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.2.0" },
@@ -901,6 +912,16 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.13.2" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "pararamio-core"
+version = "0.1.0"
+source = { editable = "../../GITLABCOM/py-pararamio/packages/pararamio_core" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [{ name = "fakeredis", specifier = ">=2.31.3" }]
 
 [[package]]
 name = "parse"
