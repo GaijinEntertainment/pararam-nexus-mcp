@@ -23,8 +23,8 @@ dependencies = [
     "httpx>=0.24.0",
     "pydantic>=2.0.0",
     "fastmcp>=0.1.0",
-    "pararamio-aio>=0.1.0",
-    "pararamio-bot",
+    "pararamio-aio>=3.0.13",
+    "pararamio-bot>=3.0.15",
 ]
 
 [project.urls]
@@ -55,10 +55,6 @@ dev = [
     # Type stubs
     "types-requests",
 ]
-
-[tool.uv.sources]
-pararamio-bot = { path = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_bot", editable = true }
-pararamio-aio = { path = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_aio", editable = true }
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
