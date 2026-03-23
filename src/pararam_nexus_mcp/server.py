@@ -10,6 +10,7 @@ import sys
 from fastmcp import FastMCP
 
 from pararam_nexus_mcp.config import config
+from pararam_nexus_mcp.tools.channel import register_channel_tools
 from pararam_nexus_mcp.tools.chats import register_chat_tools
 from pararam_nexus_mcp.tools.posts import register_post_tools
 from pararam_nexus_mcp.tools.users import register_user_tools
@@ -22,6 +23,17 @@ mcp = FastMCP(
     instructions=config.mcp_server_instructions,
 )
 
+# Declare experimental channel capability for Claude Code channel notifications
+_original_create_init_options = mcp._mcp_server.create_initialization_options  # type: ignore[attr-defined]
+
+
+def _create_init_options_with_channel(*args: object, **kwargs: object) -> object:  # type: ignore[override]
+    kwargs.setdefault('experimental_capabilities', {'claude/channel': {}})  # type: ignore[arg-type]
+    return _original_create_init_options(*args, **kwargs)
+
+
+mcp._mcp_server.create_initialization_options = _create_init_options_with_channel  # type: ignore[attr-defined,assignment]
+
 
 def main() -> None:
     """Main entry point for the Pararam Nexus MCP server."""
@@ -33,6 +45,7 @@ def main() -> None:
         register_post_tools(mcp)
         register_chat_tools(mcp)
         register_user_tools(mcp)
+        register_channel_tools(mcp)
 
         # Set up logging
         log_level = logging.DEBUG if os.getenv('DEBUG') else logging.INFO
@@ -48,7 +61,8 @@ def main() -> None:
             'build_conversation_thread, upload_file_to_chat, get_message_from_url, '
             'get_post_attachments, download_post_attachment | '
             'Chats: search_chats | '
-            'Users: search_users, get_user_info, get_user_team_status'
+            'Users: search_users, get_user_info, get_user_team_status | '
+            'Channel: activate_channel, deactivate_channel, channel_status'
         )
 
         # Run the server - this blocks until interrupted

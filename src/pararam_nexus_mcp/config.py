@@ -27,6 +27,19 @@ class Config(BaseSettings):
         description='Path to store authentication cookies',
     )
 
+    # Channel settings (bot webhook)
+    pararam_bot_secret: str | None = Field(None, description='Pararam.io bot secret key (full key including URL key)')
+    pararam_channel_host: str = Field(default='127.0.0.1', description='Webhook listener host')
+    pararam_channel_port: int = Field(default=8443, description='Webhook listener port')
+    pararam_whitelisted_users: str = Field(
+        default='',
+        description='Whitelisted user unique_names for channel notifications (comma-separated)',
+    )
+    pararam_channel_pre_exec: str | None = Field(
+        None,
+        description='Shell command to run before starting the channel (e.g. rathole tunnel)',
+    )
+
     # MCP server settings
     mcp_server_name: str = Field(default='pararam-nexus-mcp', description='MCP server name')
     mcp_server_instructions: str = Field(
@@ -37,6 +50,13 @@ class Config(BaseSettings):
         ),
         description='MCP server instructions',
     )
+
+    @property
+    def whitelisted_users_list(self) -> list[str]:
+        """Parse comma-separated whitelisted users string into list."""
+        if not self.pararam_whitelisted_users:
+            return []
+        return [u.strip() for u in self.pararam_whitelisted_users.split(',') if u.strip()]
 
     def validate_credentials(self) -> None:
         """Validate that required credentials are provided."""

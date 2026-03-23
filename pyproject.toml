@@ -24,6 +24,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "fastmcp>=0.1.0",
     "pararamio-aio==3.0.13",
+    "pararamio-bot",
 ]
 
 [project.urls]
@@ -53,6 +54,9 @@ dev = [
     # Type stubs
     "types-requests",
 ]
+
+[tool.uv.sources]
+pararamio-bot = { path = "/Users/ivolnistov/work/GITLABCOM/py-pararamio/packages/pararamio_bot", editable = true }
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -169,6 +173,7 @@ module = [
     "requests.*",
     "dotenv.*",
     "pararamio_aio.*",
+    "pararamio_bot.*",
 ]
 ignore_missing_imports = true
 
