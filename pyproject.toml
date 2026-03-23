@@ -1,40 +1,8 @@
-[project]
-name = "pararam-nexus-mcp"
-dynamic = ["version"]
-description = "Model Context Protocol server for pararam.io - a modern communication and collaboration platform"
-readme = "README.md"
-requires-python = ">=3.14"
-license = { text = "MIT" }
-authors = [
-    { name = "Ilya Volnistov", email = "i.volnistov@gaijin.team" }
+[tool.uv.workspace]
+members = [
+    "packages/pararam-nexus-mcp",
+    "packages/pararam-nexus-channel",
 ]
-keywords = ["mcp", "pararam", "pararam.io", "communication", "messaging", "fastmcp", "async"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Communications :: Chat",
-    "Topic :: Software Development :: Libraries",
-    "Framework :: AsyncIO",
-]
-dependencies = [
-    "httpx>=0.24.0",
-    "pydantic>=2.0.0",
-    "fastmcp>=0.1.0",
-    "pararamio-aio>=3.0.13",
-    "pararamio-bot>=3.0.15",
-]
-
-[project.urls]
-Homepage = "https://github.com/ivolnistov/pararam-nexus-mcp"
-Repository = "https://github.com/ivolnistov/pararam-nexus-mcp"
-Issues = "https://github.com/ivolnistov/pararam-nexus-mcp/issues"
-
-[project.scripts]
-pararam-nexus-mcp = "pararam_nexus_mcp.server:main"
-pararam-nexus-channel = "pararam_nexus_mcp.channel_server:main"
 
 [dependency-groups]
 dev = [
@@ -55,19 +23,6 @@ dev = [
     # Type stubs
     "types-requests",
 ]
-
-[build-system]
-requires = ["hatchling", "hatch-vcs"]
-build-backend = "hatchling.build"
-
-[tool.hatch.version]
-source = "vcs"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "src/pararam_nexus_mcp/_version.py"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/pararam_nexus_mcp"]
 
 # Ruff configuration
 [tool.ruff]
@@ -122,19 +77,19 @@ max-locals = 20
 max-statements = 60
 
 [tool.ruff.lint.isort]
-known-first-party = ["pararam_nexus_mcp"]
+known-first-party = ["pararam_nexus_mcp", "pararam_nexus_channel"]
 
 [tool.ruff.lint.per-file-ignores]
 # Test files
-"tests/**/*.py" = [
+"**/tests/**/*.py" = [
     "S101",    # assert statements allowed in tests
     "T201",    # print statements allowed in tests
     "PLR2004", # magic values allowed in tests
     "ARG001",  # unused arguments (fixtures)
     "ARG002",  # unused arguments (setUp)
 ]
-# Server module needs print for error messages to stderr
-"src/pararam_nexus_mcp/server.py" = [
+# Server modules need print for error messages to stderr
+"**/server.py" = [
     "T201",    # print statements are needed for error output to stderr
 ]
 
@@ -177,17 +132,16 @@ ignore_missing_imports = true
 
 # Pytest configuration
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = [
+    "packages/pararam-nexus-mcp/tests",
+    "packages/pararam-nexus-channel/tests",
+]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
     "-ra",
     "--strict-markers",
-    "--cov=pararam_nexus_mcp",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
 ]
 asyncio_mode = "auto"
 markers = [
@@ -199,7 +153,7 @@ markers = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["src"]
+source = ["packages"]
 omit = [
     "*/tests/*",
     "*/__init__.py",

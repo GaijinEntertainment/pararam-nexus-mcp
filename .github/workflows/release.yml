@@ -52,8 +52,10 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v3
 
-    - name: Build package
-      run: uv build
+    - name: Build packages
+      run: |
+        uv build --package pararam-nexus-mcp
+        uv build --package pararam-nexus-channel
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
@@ -132,7 +134,9 @@ jobs:
       uses: astral-sh/setup-uv@v3
 
     - name: Build packages
-      run: uv build
+      run: |
+        uv build --package pararam-nexus-mcp
+        uv build --package pararam-nexus-channel
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -151,17 +155,22 @@ jobs:
           ### Installation
 
           ```bash
-          # Using uvx (no installation required)
+          # MCP server (using uvx)
           uvx pararam-nexus-mcp
+
+          # Channel server (using uvx)
+          uvx pararam-nexus-channel
 
           # Or install with uv
           uv tool install pararam-nexus-mcp
+          uv tool install pararam-nexus-channel
 
           # Or with pip
           pip install pararam-nexus-mcp
+          pip install pararam-nexus-channel
           ```
 
-          #### Docker
+          #### Docker (MCP server)
           ```bash
           docker pull ivolnistov/pararam-nexus-mcp:${{ needs.resolve.outputs.version_number }}
           docker pull ghcr.io/${{ github.repository }}:${{ needs.resolve.outputs.version_number }}

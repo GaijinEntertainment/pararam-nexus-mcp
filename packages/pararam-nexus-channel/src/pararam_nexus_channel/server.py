@@ -48,6 +48,7 @@ mcp = Server(
 
 # --- Reply tool ---
 
+
 @mcp.list_tools()  # type: ignore[misc]
 async def list_tools() -> list[dict[str, object]]:
     """List available tools."""
@@ -99,7 +100,8 @@ async def call_tool(name: str, arguments: dict[str, object]) -> list[dict[str, s
 
 # --- Main ---
 
-async def main() -> None:
+
+async def _run() -> None:
     """Run the channel server."""
     if not BOT_SECRET:
         logger.error('PARARAM_BOT_SECRET is required')
@@ -108,7 +110,10 @@ async def main() -> None:
     logger.info('Starting pararam-channel server')
     logger.info(
         'Webhook: %s:%d, whitelisted: %s, ignored_ids: %s',
-        CHANNEL_HOST, CHANNEL_PORT, WHITELISTED_SET or '(all)', IGNORED_USER_IDS or '(none)',
+        CHANNEL_HOST,
+        CHANNEL_PORT,
+        WHITELISTED_SET or '(all)',
+        IGNORED_USER_IDS or '(none)',
     )
 
     async with stdio_server() as (read_stream, write_stream):
@@ -118,9 +123,7 @@ async def main() -> None:
         )
 
         # Start MCP session in background
-        session_task = asyncio.create_task(
-            mcp.run(read_stream, write_stream, init_options)
-        )
+        session_task = asyncio.create_task(mcp.run(read_stream, write_stream, init_options))
 
         # Wait a moment for session to initialize
         await asyncio.sleep(0.5)
@@ -185,5 +188,10 @@ async def main() -> None:
         await session_task
 
 
+def main() -> None:
+    """Entry point for pararam-nexus-channel."""
+    asyncio.run(_run())
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()

@@ -9,20 +9,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 uv sync --dev
 
 # Lint and format
-uv run ruff check --fix src/
-uv run ruff format src/
+uv run ruff check --fix packages/
+uv run ruff format packages/
 
 # Type checking
-uv run mypy src/pararam_nexus_mcp
+uv run mypy packages/pararam-nexus-mcp/src/pararam_nexus_mcp
 
 # Run all tests
 uv run pytest
 
 # Run a single test
-uv run pytest tests/test_foo.py::test_bar -v
+uv run pytest packages/pararam-nexus-mcp/tests/test_foo.py::test_bar -v
 
 # Run the MCP server locally
 uv run pararam-nexus-mcp
+
+# Run the channel server locally
+uv run pararam-nexus-channel
+
+# Build packages
+uv build --package pararam-nexus-mcp
+uv build --package pararam-nexus-channel
 
 # Interactive MCP inspector (loads .env automatically)
 ./inspector.sh
@@ -33,7 +40,11 @@ uv run pre-commit run --all-files
 
 ## Architecture
 
-FastMCP server providing tools for pararam.io (messaging/collaboration platform). Python 3.13+, fully async.
+UV workspace monorepo with two independent PyPI packages. Python 3.14+, fully async.
+
+### Package: pararam-nexus-mcp (`packages/pararam-nexus-mcp/`)
+
+FastMCP server providing tools for pararam.io (messaging/collaboration platform).
 
 **Entry point:** `server.py` creates FastMCP instance, registers tools from three modules, runs server on stdio transport.
 
@@ -47,6 +58,14 @@ FastMCP server providing tools for pararam.io (messaging/collaboration platform)
 - `users.py` — user search, info, team status (3 tools)
 
 Each tool module exports a `register_*_tools(mcp)` function. Tools use `@mcp.tool()` decorator, return `ToolResponse[T]` (generic wrapper with success/message/error/payload).
+
+### Package: pararam-nexus-channel (`packages/pararam-nexus-channel/`)
+
+Standalone Claude Code channel server for pararam.io bot webhooks. Receives messages via bot webhook and pushes them as MCP channel notifications.
+
+**Entry point:** `server.py` — low-level MCP server with webhook listener, env-based config.
+
+**Config:** Environment variables only (`PARARAM_BOT_SECRET`, `PARARAM_CHANNEL_HOST`, `PARARAM_CHANNEL_PORT`, `PARARAM_WHITELISTED_USERS`, `PARARAM_IGNORED_USER_IDS`).
 
 ## Code Style
 

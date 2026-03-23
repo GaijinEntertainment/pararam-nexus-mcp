@@ -1,0 +1,46 @@
+[project]
+name = "pararam-nexus-channel"
+dynamic = ["version"]
+description = "Claude Code channel server for pararam.io bot webhooks"
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [
+    { name = "Ilya Volnistov", email = "i.volnistov@gaijin.team" }
+]
+keywords = ["mcp", "pararam", "pararam.io", "claude-code", "channel", "webhooks"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Communications :: Chat",
+    "Framework :: AsyncIO",
+]
+dependencies = [
+    "mcp>=1.17.0",
+    "httpx>=0.24.0",
+    "pararamio-bot>=3.0.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/GaijinEntertainment/pararam-nexus-mcp"
+Repository = "https://github.com/GaijinEntertainment/pararam-nexus-mcp"
+Issues = "https://github.com/GaijinEntertainment/pararam-nexus-mcp/issues"
+
+[project.scripts]
+pararam-nexus-channel = "pararam_nexus_channel.server:main"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+raw-options.root = "../.."
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/pararam_nexus_channel/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pararam_nexus_channel"]
