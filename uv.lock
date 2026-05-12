@@ -929,30 +929,22 @@ dependencies = [
 requires-dist = [
     { name = "fastmcp", specifier = ">=0.1.0" },
     { name = "httpx", specifier = ">=0.24.0" },
-    { name = "pararamio-aio", editable = "../py-pararamio/packages/pararamio_aio" },
+    { name = "pararamio-aio", specifier = ">=3.0.31" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
 ]
 
 [[package]]
 name = "pararamio-aio"
-source = { editable = "../py-pararamio/packages/pararamio_aio" }
+version = "3.0.31"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
-    { name = "pararamio-core" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.25.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.18.2" },
-    { name = "pararamio-core", editable = "../py-pararamio/packages/pararamio_core" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.2.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.13.2" },
+sdist = { url = "https://files.pythonhosted.org/packages/fa/ec/04bf3c1f31583187d463ee4e4c7d6dc2a712da6f88033783ce9841d7489f/pararamio_aio-3.0.31.tar.gz", hash = "sha256:2b389a3ad99ef10c6726522d56024be4fda49b5c9f2e529afbeae6ccb7506d58", size = 117679, upload-time = "2026-05-12T18:25:22.133Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1d/cf/71e48a6c5b2419d479c172d64f22bc0611788293ff27eed79d629f736b67/pararamio_aio-3.0.31-py3-none-any.whl", hash = "sha256:6f0ec213cabaf277267fc0b7c83706d842b1ccd18ed7eb22faba9efbf016553b", size = 169281, upload-time = "2026-05-12T18:25:20.706Z" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "pararamio-bot"
@@ -965,20 +957,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/90/c7/5e70c0ce7b13f73d2449acc11165db70abda68c642b39b8bdb9bc042b5fe/pararamio_bot-3.0.14.tar.gz", hash = "sha256:4d3cb9e48f6e8301828dd638154753af914d7025979bc4bf7fc1bc3474667ffd", size = 6962, upload-time = "2026-03-23T13:09:22.248Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5a/7f/d5289730fe0a39e6c9f154463012ae41f3d2f8e7562ff15ce3541a4d101b/pararamio_bot-3.0.14-py3-none-any.whl", hash = "sha256:fa3e15989c0954867a9119981902346836782d674e6bf8129d6f833539ff829d", size = 6792, upload-time = "2026-03-23T13:09:21.212Z" },
-]
-
-[[package]]
-name = "pararamio-core"
-source = { editable = "../py-pararamio/packages/pararamio_core" }
-
-[package.metadata]
-requires-dist = [{ name = "cryptography", marker = "extra == 'e2e'", specifier = ">=42.0" }]
-provides-extras = ["e2e"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "cryptography", specifier = ">=42.0" },
-    { name = "fakeredis", specifier = ">=2.31.3" },
 ]
 
 [[package]]
