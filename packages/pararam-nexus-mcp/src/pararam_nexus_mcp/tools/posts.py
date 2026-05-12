@@ -1520,6 +1520,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Fetching reply thread for chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             posts = await post.rerere()
             post_nos = [p.post_no for p in posts]
             return success_response(
@@ -1557,6 +1562,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Fetching replies to chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             replies = await post.load_reply_posts()
             formatted: list[PostInfo] = []
             for reply in replies:
@@ -1623,6 +1633,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Editing chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             await post.edit(text=text, quote=quote, reply_no=reply_no)
             return success_response(
                 message=f'Edited post {chat_id}/{post_no}',
@@ -1659,6 +1674,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Deleting chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             await post.delete()
             is_deleted = bool(getattr(post, 'is_deleted', True))
             return success_response(
