@@ -9,7 +9,7 @@ from pathlib import Path
 import httpx
 from fastmcp import FastMCP
 from mcp.types import ImageContent
-from pararamio_aio._core import (
+from pararamio_aio.exceptions import (
     PararamioAuthenticationError,
     PararamioHTTPRequestError,
     PararamioRequestError,
@@ -21,13 +21,17 @@ from pararam_nexus_mcp.helpers import error_response, success_response
 from pararam_nexus_mcp.models import (
     BuildConversationThreadPayload,
     ChatMessageInfo,
+    DeletePostPayload,
     DownloadAttachmentErrorResponse,
     DownloadAttachmentResponse,
+    EditPostPayload,
     FileInfo,
     GetChatMessagesPayload,
     GetMessageFromUrlPayload,
     GetPostAttachmentsPayload,
     PostInfo,
+    RepliesToPostPayload,
+    ReplyThreadPayload,
     SearchMessagesPayload,
     SendMessagePayload,
     ToolResponse,
@@ -1494,3 +1498,190 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
                 size=0,
                 mime_type='',
             )
+
+    @mcp.tool()
+    async def get_reply_thread(
+        chat_id: int,
+        post_no: int,
+    ) -> ToolResponse[ReplyThreadPayload | None]:
+        """Fetch the full reply thread rooted at a post (server-side rerere traversal).
+
+        Returns every post number in the thread in the order the server reports
+        them — the root and every transitively-reachable reply.
+
+        Args:
+            chat_id: Numeric chat ID.
+            post_no: Post number to root the thread traversal at.
+
+        Returns:
+            ToolResponse with the list of post numbers comprising the thread.
+        """
+        try:
+            client = await get_client()
+            logger.info('Fetching reply thread for chat=%s post=%s', chat_id, post_no)
+            post = await client.client.get_post(chat_id, post_no)
+            posts = await post.rerere()
+            post_nos = [p.post_no for p in posts]
+            return success_response(
+                message=f'Thread for {chat_id}/{post_no} has {len(post_nos)} posts',
+                payload=ReplyThreadPayload(
+                    chat_id=chat_id, root_post_no=post_no, post_nos=post_nos
+                ),
+            )
+        except (
+            PararamioAuthenticationError,
+            PararamioHTTPRequestError,
+            PararamioRequestError,
+            PararamioValidationError,
+            httpx.HTTPError,
+        ) as e:
+            logger.error('Failed to fetch reply thread %s/%s: %s', chat_id, post_no, e)
+            return error_response(message='Could not fetch reply thread', error=str(e))
+        except Exception as e:
+            logger.error(
+                'Unexpected error fetching reply thread %s/%s: %s', chat_id, post_no, e, exc_info=True
+            )
+            return error_response(message='Unexpected error', error=str(e))
+
+    @mcp.tool()
+    async def get_replies_to_post(
+        chat_id: int,
+        post_no: int,
+    ) -> ToolResponse[RepliesToPostPayload | None]:
+        """Fetch direct replies to a post (one level deep, hydrated).
+
+        Args:
+            chat_id: Numeric chat ID.
+            post_no: Post number whose direct replies should be returned.
+
+        Returns:
+            ToolResponse with PostInfo entries for each direct reply.
+        """
+        try:
+            client = await get_client()
+            logger.info('Fetching replies to chat=%s post=%s', chat_id, post_no)
+            post = await client.client.get_post(chat_id, post_no)
+            replies = await post.load_reply_posts()
+            formatted: list[PostInfo] = []
+            for reply in replies:
+                user_id = getattr(reply, 'user_id', None)
+                user_name = 'Unknown'
+                if reply.meta and 'user' in reply.meta:
+                    user_name = reply.meta['user'].get('name', 'Unknown')
+                file_info = extract_file_from_post(reply)
+                formatted.append(
+                    PostInfo(
+                        post_no=reply.post_no,
+                        text=reply.text or '',
+                        user_name=user_name,
+                        user_id=user_id,
+                        time_created=str(reply.time_created),
+                        reply_no=reply.reply_no,
+                        type=get_post_type(reply),
+                        file=file_info,
+                    )
+                )
+            return success_response(
+                message=f'{len(formatted)} direct replies to {chat_id}/{post_no}',
+                payload=RepliesToPostPayload(
+                    chat_id=chat_id,
+                    post_no=post_no,
+                    count=len(formatted),
+                    replies=formatted,
+                ),
+            )
+        except (
+            PararamioAuthenticationError,
+            PararamioHTTPRequestError,
+            PararamioRequestError,
+            PararamioValidationError,
+            httpx.HTTPError,
+        ) as e:
+            logger.error('Failed to fetch replies %s/%s: %s', chat_id, post_no, e)
+            return error_response(message='Could not fetch replies', error=str(e))
+        except Exception as e:
+            logger.error(
+                'Unexpected error fetching replies %s/%s: %s', chat_id, post_no, e, exc_info=True
+            )
+            return error_response(message='Unexpected error', error=str(e))
+
+    @mcp.tool()
+    async def edit_post(
+        chat_id: int,
+        post_no: int,
+        text: str,
+        quote: str | None = None,
+        reply_no: int | None = None,
+    ) -> ToolResponse[EditPostPayload | None]:
+        """Edit an existing post.
+
+        Args:
+            chat_id: Numeric chat ID.
+            post_no: Post number to edit (must be authored by the token's user).
+            text: New post text.
+            quote: Optional quoted text override.
+            reply_no: Optional change to which post this one replies to.
+
+        Returns:
+            ToolResponse with the edited post's identity and new text.
+        """
+        try:
+            client = await get_client()
+            logger.info('Editing chat=%s post=%s', chat_id, post_no)
+            post = await client.client.get_post(chat_id, post_no)
+            await post.edit(text=text, quote=quote, reply_no=reply_no)
+            return success_response(
+                message=f'Edited post {chat_id}/{post_no}',
+                payload=EditPostPayload(chat_id=chat_id, post_no=post_no, text=text),
+            )
+        except (
+            PararamioAuthenticationError,
+            PararamioHTTPRequestError,
+            PararamioRequestError,
+            PararamioValidationError,
+            httpx.HTTPError,
+        ) as e:
+            logger.error('Failed to edit post %s/%s: %s', chat_id, post_no, e)
+            return error_response(message='Could not edit post', error=str(e))
+        except Exception as e:
+            logger.error('Unexpected error editing post %s/%s: %s', chat_id, post_no, e, exc_info=True)
+            return error_response(message='Unexpected error', error=str(e))
+
+    @mcp.tool()
+    async def delete_post(
+        chat_id: int,
+        post_no: int,
+    ) -> ToolResponse[DeletePostPayload | None]:
+        """Delete a post.
+
+        Args:
+            chat_id: Numeric chat ID.
+            post_no: Post number to delete (must be authored by the token's user).
+
+        Returns:
+            ToolResponse confirming the delete and the resulting is_deleted flag.
+        """
+        try:
+            client = await get_client()
+            logger.info('Deleting chat=%s post=%s', chat_id, post_no)
+            post = await client.client.get_post(chat_id, post_no)
+            await post.delete()
+            is_deleted = bool(getattr(post, 'is_deleted', True))
+            return success_response(
+                message=f'Deleted post {chat_id}/{post_no}',
+                payload=DeletePostPayload(
+                    chat_id=chat_id, post_no=post_no, is_deleted=is_deleted
+                ),
+            )
+        except (
+            PararamioAuthenticationError,
+            PararamioHTTPRequestError,
+            PararamioRequestError,
+            PararamioValidationError,
+            httpx.HTTPError,
+        ) as e:
+            logger.error('Failed to delete post %s/%s: %s', chat_id, post_no, e)
+            return error_response(message='Could not delete post', error=str(e))
+        except Exception as e:
+            logger.error('Unexpected error deleting post %s/%s: %s', chat_id, post_no, e, exc_info=True)
+            return error_response(message='Unexpected error', error=str(e))

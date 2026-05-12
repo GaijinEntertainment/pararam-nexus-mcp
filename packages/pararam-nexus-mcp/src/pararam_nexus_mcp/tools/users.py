@@ -4,7 +4,7 @@ import logging
 
 import httpx
 from fastmcp import FastMCP
-from pararamio_aio._core import (
+from pararamio_aio.exceptions import (
     PararamioAuthenticationError,
     PararamioHTTPRequestError,
     PararamioRequestError,

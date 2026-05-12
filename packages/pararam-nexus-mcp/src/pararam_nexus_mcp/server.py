@@ -3,6 +3,7 @@
 FastMCP-based Pararam Nexus MCP server implementation.
 """
 
+import asyncio
 import logging
 import os
 import sys
@@ -16,11 +17,48 @@ from pararam_nexus_mcp.tools.users import register_user_tools
 
 logger = logging.getLogger(__name__)
 
+# Tool names available in limited (X-UserToken) mode. Everything else is
+# stripped after registration. See README "Modes" section for rationale.
+LIMITED_MODE_TOOLS: frozenset[str] = frozenset(
+    {
+        # Chat operations
+        # NOTE: 'search_chats' is intentionally NOT in the limited allow-list.
+        # The /core/chat/search endpoint demands a `session_id` field whose
+        # source is undocumented for service tokens; the call 400s without it.
+        # Re-add once the team documents the session_id mechanism.
+        'get_chat',
+        'create_private_chat',
+        'create_group_chat',
+        'create_thread_chat',
+        # Post operations
+        'get_chat_messages',
+        'get_message_from_url',
+        'get_reply_thread',
+        'get_replies_to_post',
+        'send_message',
+        'edit_post',
+        'delete_post',
+    }
+)
+
 # Initialize FastMCP server
 mcp = FastMCP(
     name=config.mcp_server_name,
     instructions=config.mcp_server_instructions,
 )
+
+
+async def _prune_to_limited_tools(server: FastMCP[None]) -> list[str]:
+    """In limited mode, drop every registered tool not in the allow-list.
+
+    Returns the sorted list of tool names that remain registered.
+    """
+    tools = await server.list_tools()
+    for tool in tools:
+        if tool.name not in LIMITED_MODE_TOOLS:
+            server.local_provider.remove_tool(tool.name)
+    remaining = await server.list_tools()
+    return sorted(t.name for t in remaining)
 
 
 def main() -> None:
@@ -29,27 +67,41 @@ def main() -> None:
         # Validate configuration
         config.validate_credentials()
 
-        # Register all tools
-        register_post_tools(mcp)
-        register_chat_tools(mcp)
-        register_user_tools(mcp)
-
-        # Set up logging
+        # Set up logging (do this before the first logger.info call below)
         log_level = logging.DEBUG if os.getenv('DEBUG') else logging.INFO
         logging.basicConfig(
             level=log_level,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         )
 
-        logger.info(f'Starting {config.mcp_server_name}')
-        logger.info(
-            'Registered tools: '
-            'Posts: search_messages, get_chat_messages, send_message, '
-            'build_conversation_thread, upload_file_to_chat, get_message_from_url, '
-            'get_post_attachments, download_post_attachment | '
-            'Chats: search_chats | '
-            'Users: search_users, get_user_info, get_user_team_status'
-        )
+        # Register tools. User tools are full-mode-only — they aren't part of
+        # the limited-mode spec, so skip the registration entirely to avoid
+        # building Python objects we'll just discard.
+        register_post_tools(mcp)
+        register_chat_tools(mcp)
+        if config.mode == 'full':
+            register_user_tools(mcp)
+
+        # In limited mode, prune to the allow-list. The prune runs once at
+        # startup on a throwaway event loop; mcp.run() spins its own.
+        if config.mode == 'limited':
+            remaining = asyncio.run(_prune_to_limited_tools(mcp))
+            logger.info(
+                'Starting %s (limited mode, %d tools): %s',
+                config.mcp_server_name,
+                len(remaining),
+                ', '.join(remaining),
+            )
+        else:
+            logger.info(
+                'Starting %s (full mode): '
+                'Posts: search_messages, get_chat_messages, send_message, '
+                'build_conversation_thread, upload_file_to_chat, get_message_from_url, '
+                'get_post_attachments, download_post_attachment | '
+                'Chats: search_chats | '
+                'Users: search_users, get_user_info, get_user_team_status',
+                config.mcp_server_name,
+            )
 
         # Run the server - this blocks until interrupted
         mcp.run()

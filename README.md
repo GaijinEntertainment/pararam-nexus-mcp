@@ -133,13 +133,39 @@ uv sync --dev
 
 ## Configuration
 
-Create a `.env` file with your pararam.io credentials:
+The server runs in one of two modes depending on which env vars are set.
+
+### Full mode — login + password (+ optional 2FA)
+
+All tools are registered. Cookies are persisted between runs.
 
 ```env
 PARARAM_LOGIN=your_login
 PARARAM_PASSWORD=your_password
-PARARAM_2FA_KEY=your_2fa_key  # Optional
+PARARAM_2FA_KEY=your_2fa_key  # optional
 ```
+
+### Limited mode — `X-UserToken` service token
+
+Set `PARARAM_USER_TOKEN` (mutually exclusive with `PARARAM_LOGIN`/`PARARAM_PASSWORD`).
+Only the chat / message / post / replies / edit / delete tools are registered;
+user lookups, global search, and file ops are excluded.
+
+```env
+PARARAM_USER_TOKEN=your_service_token
+```
+
+Tools available in limited mode:
+
+- **Chats** — `get_chat`, `create_private_chat`, `create_group_chat`,
+  `create_thread_chat`
+- **Posts** — `get_chat_messages`, `get_message_from_url`,
+  `get_reply_thread`, `get_replies_to_post`, `send_message`,
+  `edit_post`, `delete_post`
+
+> `search_chats` is **not** exposed in limited mode — the underlying
+> `/core/chat/search` endpoint requires a `session_id` field that service
+> tokens don't provide. Will be re-added once the mechanism is documented.
 
 ## MCP Client Configuration
 

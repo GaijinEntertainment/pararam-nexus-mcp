@@ -4,6 +4,14 @@ members = [
     "packages/pararam-nexus-channel",
 ]
 
+# TODO(remove-before-merge): dev-only override to consume the unreleased
+# `user_token` kwarg from py-pararamio. Revert this block and bump the
+# `pararamio-aio` pin in packages/pararam-nexus-mcp/pyproject.toml to the
+# new released version once py-pararamio publishes the feat/user-token-auth
+# changes to PyPI.
+[tool.uv.sources]
+pararamio-aio = { path = "../py-pararamio/packages/pararamio_aio", editable = true }
+
 [dependency-groups]
 dev = [
     # Dependencies

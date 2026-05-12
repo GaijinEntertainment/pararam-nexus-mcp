@@ -355,3 +355,53 @@ class GetUserTeamStatusResponse(BaseModel):
     user_id: str = Field(..., description='User ID checked')
     teams_checked: int = Field(..., description='Number of teams checked')
     team_statuses: list[TeamStatus] = Field(..., description='List of team statuses')
+
+
+# Limited-mode (X-UserToken) tool payloads ------------------------------------
+
+
+class GetChatPayload(BaseModel):
+    """Payload for get_chat response."""
+
+    chat: ChatInfo = Field(..., description='Full chat metadata')
+
+
+class CreateChatPayload(BaseModel):
+    """Payload returned by every create_*_chat tool."""
+
+    chat_id: int = Field(..., description='ID of the newly created chat')
+    title: str | None = Field(None, description='Chat title (None for private chats)')
+    type: str = Field(..., description='Chat type: pm, group, or thread')
+
+
+class ReplyThreadPayload(BaseModel):
+    """Payload for get_reply_thread response (server-side rerere traversal)."""
+
+    chat_id: int = Field(..., description='ID of the chat')
+    root_post_no: int = Field(..., description='Post number the thread was rooted at')
+    post_nos: list[int] = Field(..., description='Post numbers in the thread, in server order')
+
+
+class RepliesToPostPayload(BaseModel):
+    """Payload for get_replies_to_post response (direct children only)."""
+
+    chat_id: int = Field(..., description='ID of the chat')
+    post_no: int = Field(..., description='Post number replies were requested for')
+    count: int = Field(..., description='Number of direct replies')
+    replies: list[PostInfo] = Field(..., description='Hydrated reply posts')
+
+
+class EditPostPayload(BaseModel):
+    """Payload for edit_post response."""
+
+    chat_id: int = Field(..., description='ID of the chat')
+    post_no: int = Field(..., description='Post number that was edited')
+    text: str = Field(..., description='New post text after edit')
+
+
+class DeletePostPayload(BaseModel):
+    """Payload for delete_post response."""
+
+    chat_id: int = Field(..., description='ID of the chat')
+    post_no: int = Field(..., description='Post number that was deleted')
+    is_deleted: bool = Field(..., description='Whether the post is now marked deleted')
