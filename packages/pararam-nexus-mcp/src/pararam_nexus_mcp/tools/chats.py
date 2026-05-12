@@ -143,6 +143,11 @@ def register_chat_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Fetching chat %s', chat_id)
             chat = await client.client.get_chat_by_id(chat_id)
+            if chat is None:
+                return error_response(
+                    message=f'Chat {chat_id} not found',
+                    error='not found',
+                )
             await chat.load()
             info = ChatInfo(
                 id=chat.id,
@@ -276,10 +281,18 @@ def register_chat_tools(mcp: FastMCP[None]) -> None:
                 title,
             )
             parent = await client.client.get_chat_by_id(parent_chat_id)
+            if parent is None:
+                return error_response(
+                    message=f'Parent chat {parent_chat_id} not found',
+                    error='not found',
+                )
             branch = await parent.create_branch(post_no=post_no, title=title or '')
+            # Branch wraps the new child Chat plus parent linkage; the actual
+            # chat id is `branch.chat.id`.
+            branch_chat_id = int(branch.chat.id)
             return success_response(
-                message=f'Branch chat created (id={branch.id})',
-                payload=CreateChatPayload(chat_id=branch.id, title=title, type='thread'),
+                message=f'Branch chat created (id={branch_chat_id})',
+                payload=CreateChatPayload(chat_id=branch_chat_id, title=title, type='thread'),
             )
         except (
             PararamioAuthenticationError,

@@ -32,9 +32,7 @@ class PararamClient:
         # Cookie manager is only used in full mode; limited (token) mode never
         # persists session data.
         self._cookie_manager: AsyncFileCookieManager | None = (
-            None
-            if config.mode == 'limited'
-            else AsyncFileCookieManager(str(config.pararam_cookie_file))
+            None if config.mode == 'limited' else AsyncFileCookieManager(str(config.pararam_cookie_file))
         )
         self._initialized: bool = True
 

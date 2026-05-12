@@ -1520,13 +1520,16 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Fetching reply thread for chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             posts = await post.rerere()
             post_nos = [p.post_no for p in posts]
             return success_response(
                 message=f'Thread for {chat_id}/{post_no} has {len(post_nos)} posts',
-                payload=ReplyThreadPayload(
-                    chat_id=chat_id, root_post_no=post_no, post_nos=post_nos
-                ),
+                payload=ReplyThreadPayload(chat_id=chat_id, root_post_no=post_no, post_nos=post_nos),
             )
         except (
             PararamioAuthenticationError,
@@ -1538,9 +1541,7 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             logger.error('Failed to fetch reply thread %s/%s: %s', chat_id, post_no, e)
             return error_response(message='Could not fetch reply thread', error=str(e))
         except Exception as e:
-            logger.error(
-                'Unexpected error fetching reply thread %s/%s: %s', chat_id, post_no, e, exc_info=True
-            )
+            logger.error('Unexpected error fetching reply thread %s/%s: %s', chat_id, post_no, e, exc_info=True)
             return error_response(message='Unexpected error', error=str(e))
 
     @mcp.tool()
@@ -1561,6 +1562,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Fetching replies to chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             replies = await post.load_reply_posts()
             formatted: list[PostInfo] = []
             for reply in replies:
@@ -1600,9 +1606,7 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             logger.error('Failed to fetch replies %s/%s: %s', chat_id, post_no, e)
             return error_response(message='Could not fetch replies', error=str(e))
         except Exception as e:
-            logger.error(
-                'Unexpected error fetching replies %s/%s: %s', chat_id, post_no, e, exc_info=True
-            )
+            logger.error('Unexpected error fetching replies %s/%s: %s', chat_id, post_no, e, exc_info=True)
             return error_response(message='Unexpected error', error=str(e))
 
     @mcp.tool()
@@ -1629,6 +1633,11 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Editing chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             await post.edit(text=text, quote=quote, reply_no=reply_no)
             return success_response(
                 message=f'Edited post {chat_id}/{post_no}',
@@ -1665,13 +1674,16 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
             client = await get_client()
             logger.info('Deleting chat=%s post=%s', chat_id, post_no)
             post = await client.client.get_post(chat_id, post_no)
+            if post is None:
+                return error_response(
+                    message=f'Post {chat_id}/{post_no} not found',
+                    error='not found',
+                )
             await post.delete()
             is_deleted = bool(getattr(post, 'is_deleted', True))
             return success_response(
                 message=f'Deleted post {chat_id}/{post_no}',
-                payload=DeletePostPayload(
-                    chat_id=chat_id, post_no=post_no, is_deleted=is_deleted
-                ),
+                payload=DeletePostPayload(chat_id=chat_id, post_no=post_no, is_deleted=is_deleted),
             )
         except (
             PararamioAuthenticationError,
