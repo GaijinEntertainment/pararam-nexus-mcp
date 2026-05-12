@@ -4,8 +4,7 @@ import contextlib
 import logging
 from typing import Any
 
-from pararamio_aio import AsyncFileCookieManager, AsyncPararamio
-from pararamio_aio._core import PararamioException
+from pararamio_aio import AsyncFileCookieManager, AsyncPararamio, PararamioException
 
 from pararam_nexus_mcp.auth import get_2fa_key
 from pararam_nexus_mcp.config import config
@@ -30,7 +29,13 @@ class PararamClient:
         if self._initialized:
             return
         self._client: AsyncPararamio | None = None
-        self._cookie_manager: AsyncFileCookieManager = AsyncFileCookieManager(str(config.pararam_cookie_file))
+        # Cookie manager is only used in full mode; limited (token) mode never
+        # persists session data.
+        self._cookie_manager: AsyncFileCookieManager | None = (
+            None
+            if config.mode == 'limited'
+            else AsyncFileCookieManager(str(config.pararam_cookie_file))
+        )
         self._initialized: bool = True
 
     async def __aenter__(self) -> PararamClient:
@@ -47,22 +52,24 @@ class PararamClient:
         if self._client is not None:
             return
 
-        logger.info('Connecting to pararam.io')
+        logger.info('Connecting to pararam.io (%s mode)', config.mode)
 
-        # Get 2FA key from config
-        tfa_key = get_2fa_key(config.pararam_2fa_key)
+        if config.mode == 'limited':
+            # Token mode: AsyncPararamio sets the X-UserToken header itself and
+            # never needs cookies, login, or 2FA.
+            client_context = AsyncPararamio(user_token=config.pararam_user_token)
+        else:
+            tfa_key = get_2fa_key(config.pararam_2fa_key)
+            client_context = AsyncPararamio(
+                login=config.pararam_login,
+                password=config.pararam_password,
+                key=tfa_key,
+                cookie_manager=self._cookie_manager,
+            )
 
-        # Initialize client with cookie manager and enter async context
-        client_context = AsyncPararamio(
-            login=config.pararam_login,
-            password=config.pararam_password,
-            key=tfa_key,
-            cookie_manager=self._cookie_manager,
-        )
-
-        # Enter async context manager to initialize session
-        # AsyncPararamio will automatically load cookies from cookie_manager
-        # and authenticate only if needed
+        # Enter async context manager to initialize session. In full mode
+        # AsyncPararamio loads cookies from cookie_manager and authenticates
+        # only if needed; in limited mode it just opens the httpx session.
         try:
             self._client = await client_context.__aenter__()
             logger.info('Successfully connected to pararam.io')
