@@ -82,13 +82,11 @@ class Config(BaseSettings):
 
         if not self.pararam_login:
             raise ValueError(
-                'PARARAM_LOGIN environment variable is required '
-                '(or set PARARAM_USER_TOKEN for limited mode)'
+                'PARARAM_LOGIN environment variable is required (or set PARARAM_USER_TOKEN for limited mode)'
             )
         if not self.pararam_password:
             raise ValueError(
-                'PARARAM_PASSWORD environment variable is required '
-                '(or set PARARAM_USER_TOKEN for limited mode)'
+                'PARARAM_PASSWORD environment variable is required (or set PARARAM_USER_TOKEN for limited mode)'
             )
 
 
