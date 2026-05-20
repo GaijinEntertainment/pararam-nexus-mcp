@@ -22,42 +22,88 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-### 2. Clone the Repository
+### 2. Choose Authentication Mode
+
+The server starts in one of two modes depending on which environment variables
+you provide.
+
+#### Full mode: login + password (+ optional 2FA)
+
+Full mode registers all tools and persists cookies between runs:
 
 ```bash
-git clone <repository-url>
-cd pararam-nexus-mcp
+PARARAM_LOGIN=your_email@example.com \
+PARARAM_PASSWORD=your_password \
+PARARAM_2FA_KEY=your_2fa_key \
+uvx pararam-nexus-mcp
 ```
 
-### 3. Install Dependencies
+#### Limited mode: `X-UserToken` service token
+
+Limited mode uses `PARARAM_USER_TOKEN` instead of login/password. It registers
+only chat, message, post, replies, edit, and delete tools. User lookups, global
+search, and file operations are excluded.
 
 ```bash
-uv sync --dev
+PARARAM_USER_TOKEN=your_service_token \
+uvx pararam-nexus-mcp
 ```
 
-This will:
-- Create a virtual environment
-- Install all required dependencies
-- Install development dependencies (linters, type checkers, test tools)
+`PARARAM_USER_TOKEN` is mutually exclusive with `PARARAM_LOGIN` and
+`PARARAM_PASSWORD`.
 
-### 4. Configure Environment Variables
+To get a user token:
 
-Create a `.env` file in the project root:
+1. Open the Pararam **Info Chat** bot documentation.
+2. In **User Tokens**, run **Create new token** (`bot://cmd_create_user_token?title=Create+new+token&conf=True`).
+3. InfoBot will reply with `New user token - ...`.
+4. Copy that value into `PARARAM_USER_TOKEN` and store it as a secret.
+
+You can also run **Get user tokens** (`bot://cmd_get_user_tokens?title=Get+user+tokens&conf=True`)
+to view the tokens created under your account.
+
+Tools available in limited mode:
+
+- **Chats**: `get_chat`, `create_private_chat`, `create_group_chat`,
+  `create_thread_chat`
+- **Posts**: `get_chat_messages`, `get_message_from_url`,
+  `get_reply_thread`, `get_replies_to_post`, `send_message`,
+  `edit_post`, `delete_post`
+
+### 3. Verify Package Startup
+
+Run the server once to verify `uvx` can install and start the published package:
 
 ```bash
-cp .env.example .env
+PARARAM_LOGIN=your_email@example.com \
+PARARAM_PASSWORD=your_password \
+PARARAM_2FA_KEY=your_2fa_key \
+uvx pararam-nexus-mcp
 ```
 
-Edit the `.env` file with your credentials:
+Press Ctrl-C to stop the server.
+
+Use environment variables for credentials. Full mode:
 
 ```env
-# Required: Your pararam.io credentials
+# Required in full mode: your pararam.io credentials
 PARARAM_LOGIN=your_email@example.com
 PARARAM_PASSWORD=your_password
 
 # Optional: Two-factor authentication key
 PARARAM_2FA_KEY=your_2fa_secret_key
+```
 
+Limited mode:
+
+```env
+# Required in limited mode; do not set login/password with it
+PARARAM_USER_TOKEN=your_service_token
+```
+
+Common options:
+
+```env
 # Optional: Debug mode (set to true for detailed logging)
 MCP_DEBUG=false
 ```
@@ -72,23 +118,6 @@ If you have two-factor authentication enabled on pararam.io:
 4. Copy the secret key (not the QR code) to `PARARAM_2FA_KEY`
 
 **Note:** The 2FA key is the secret used to generate the 6-digit codes, not the codes themselves.
-
-### 5. Verify Installation
-
-Run the server to verify everything is set up correctly:
-
-```bash
-uv run pararam-nexus-mcp
-```
-
-You should see output similar to:
-
-```
-2025-10-15 12:00:00 - pararam_nexus_mcp.server - INFO - Starting Pararam Nexus MCP
-2025-10-15 12:00:00 - pararam_nexus_mcp.server - INFO - Registered tools: search_messages, get_chat_messages, send_message, search_chats, build_conversation_thread, upload_file_to_chat, search_users, get_user_info, get_user_team_status
-```
-
-Press Ctrl-C to stop the server.
 
 ## Configuring Claude Desktop
 
@@ -106,17 +135,14 @@ The configuration file is located at:
 
 Edit the configuration file and add the Pararam Nexus MCP server:
 
+Full mode:
+
 ```json
 {
   "mcpServers": {
     "pararam-nexus": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/absolute/path/to/pararam-nexus-mcp",
-        "run",
-        "pararam-nexus-mcp"
-      ],
+      "command": "uvx",
+      "args": ["pararam-nexus-mcp"],
       "env": {
         "PARARAM_LOGIN": "your_email@example.com",
         "PARARAM_PASSWORD": "your_password",
@@ -127,7 +153,21 @@ Edit the configuration file and add the Pararam Nexus MCP server:
 }
 ```
 
-**Important:** Replace `/absolute/path/to/pararam-nexus-mcp` with the actual absolute path to your project directory.
+Limited mode:
+
+```json
+{
+  "mcpServers": {
+    "pararam-nexus": {
+      "command": "uvx",
+      "args": ["pararam-nexus-mcp"],
+      "env": {
+        "PARARAM_USER_TOKEN": "your_service_token"
+      }
+    }
+  }
+}
+```
 
 ### 3. Restart Claude Desktop
 
@@ -149,21 +189,25 @@ All configuration is done through environment variables:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `PARARAM_LOGIN` | Yes | - | Your pararam.io email/username |
-| `PARARAM_PASSWORD` | Yes | - | Your pararam.io password |
-| `PARARAM_2FA_KEY` | No | - | TOTP secret key for 2FA |
+| `PARARAM_LOGIN` | Full mode | - | Your pararam.io email/username |
+| `PARARAM_PASSWORD` | Full mode | - | Your pararam.io password |
+| `PARARAM_2FA_KEY` | No | - | TOTP secret key for 2FA in full mode |
+| `PARARAM_USER_TOKEN` | Limited mode | - | Service token sent as `X-UserToken` |
 | `MCP_DEBUG` | No | `false` | Enable debug logging |
 | `DEBUG` | No | `false` | Alternative debug flag |
 
+Set either `PARARAM_LOGIN`/`PARARAM_PASSWORD` or `PARARAM_USER_TOKEN`, not both.
+
 ### Cookie Storage
 
-The MCP server automatically manages authentication sessions using cookies stored in:
+In full mode, the MCP server automatically manages authentication sessions using cookies stored in:
 
 ```
 ~/.pararam_cookies.json
 ```
 
 This file is automatically created and maintained. You don't need to manage it manually.
+Limited mode does not use cookie storage.
 
 **Security Note:** This file contains sensitive session data. Keep it secure and don't commit it to version control.
 
@@ -171,7 +215,30 @@ This file is automatically created and maintained. You don't need to manage it m
 
 If you want to contribute or develop the project:
 
-### 1. Install Pre-commit Hooks
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd pararam-nexus-mcp
+uv sync --dev
+```
+
+This will:
+- Create a virtual environment
+- Install all required dependencies
+- Install development dependencies (linters, type checkers, test tools)
+
+### 2. Configure Local Environment
+
+Create a `.env` file in the project root:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your credentials.
+
+### 3. Install Pre-commit Hooks
 
 ```bash
 uv run pre-commit install
@@ -179,7 +246,7 @@ uv run pre-commit install
 
 This will automatically run linters and formatters before each commit.
 
-### 2. Run Tests
+### 4. Run Tests
 
 ```bash
 # Run all tests
@@ -192,7 +259,7 @@ uv run pytest --cov=src/pararam_nexus_mcp --cov-report=html
 open htmlcov/index.html
 ```
 
-### 3. Run Linters
+### 5. Run Linters
 
 ```bash
 # Check code style
@@ -205,7 +272,7 @@ uv run ruff format src/
 uv run mypy src/pararam_nexus_mcp
 ```
 
-### 4. Debug Mode
+### 6. Debug Mode
 
 Enable debug mode for detailed logging:
 
@@ -241,16 +308,17 @@ In debug mode, you'll see:
 **Problem:** Import errors when running the server
 
 **Solutions:**
-1. Ensure you're using `uv run` to execute commands
-2. Verify dependencies are installed: `uv sync`
-3. Check Python version: `python --version` (must be 3.11+)
+1. For normal usage, run the package with `uvx pararam-nexus-mcp`
+2. For local development, ensure dependencies are installed: `uv sync`
+3. For local development commands, use `uv run`
+4. Check Python version: `python --version` (must be 3.11+)
 
 ### Claude Desktop Can't Find MCP Server
 
 **Problem:** MCP tools don't appear in Claude Desktop
 
 **Solutions:**
-1. Verify the path in `claude_desktop_config.json` is absolute, not relative
+1. Verify `claude_desktop_config.json` uses `"command": "uvx"` and `"args": ["pararam-nexus-mcp"]`
 2. Ensure environment variables are set in the config file
 3. Check Claude Desktop logs for errors:
    - macOS: `~/Library/Logs/Claude/mcp*.log`

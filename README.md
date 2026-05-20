@@ -95,19 +95,19 @@ send_message(
 
 ### Quick Install with uvx (Recommended)
 
-Install directly from PyPI:
+Use the published PyPI package by default:
 
 ```bash
 uvx pararam-nexus-mcp
 ```
 
-Or install from GitHub:
+For unreleased development snapshots, you can run directly from GitHub:
 
 ```bash
 uvx --from git+https://github.com/ivolnistov/pararam-nexus-mcp pararam-nexus-mcp
 ```
 
-Or clone to a specific directory (e.g., `~/.mcp/`):
+For local development, clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/ivolnistov/pararam-nexus-mcp.git ~/.mcp/pararam-nexus-mcp
@@ -163,6 +163,13 @@ user lookups, global search, and file ops are excluded.
 PARARAM_USER_TOKEN=your_service_token
 ```
 
+To get a service token in Pararam:
+
+1. Open the Pararam **Info Chat** bot documentation.
+2. In **User Tokens**, run **Create new token** (`bot://cmd_create_user_token?title=Create+new+token&conf=True`).
+3. InfoBot will reply with `New user token - ...`.
+4. Copy that value into `PARARAM_USER_TOKEN` and store it as a secret.
+
 Tools available in limited mode:
 
 - **Chats** — `get_chat`, `create_private_chat`, `create_group_chat`,
@@ -170,10 +177,6 @@ Tools available in limited mode:
 - **Posts** — `get_chat_messages`, `get_message_from_url`,
   `get_reply_thread`, `get_replies_to_post`, `send_message`,
   `edit_post`, `delete_post`
-
-> `search_chats` is **not** exposed in limited mode — the underlying
-> `/core/chat/search` endpoint requires a `session_id` field that service
-> tokens don't provide. Will be re-added once the mechanism is documented.
 
 ## MCP Client Configuration
 
@@ -330,16 +333,19 @@ docker run -i --rm \
 ```
 
 **Environment variables:**
-- `PARARAM_LOGIN` (required): Your pararam.io login
-- `PARARAM_PASSWORD` (required): Your pararam.io password
-- `PARARAM_2FA_KEY` (optional): Your 2FA secret key for TOTP authentication
+- `PARARAM_LOGIN` (full mode): Your pararam.io login
+- `PARARAM_PASSWORD` (full mode): Your pararam.io password
+- `PARARAM_2FA_KEY` (optional): Your 2FA secret key for TOTP authentication in full mode
+- `PARARAM_USER_TOKEN` (limited mode): Service token sent as `X-UserToken`
+
+Set either `PARARAM_LOGIN`/`PARARAM_PASSWORD` or `PARARAM_USER_TOKEN`, not both.
 
 ## Usage
 
 ### If installed with uvx:
 
 ```bash
-uvx --from git+https://github.com/ivolnistov/pararam-nexus-mcp pararam-nexus-mcp
+uvx pararam-nexus-mcp
 ```
 
 ### If cloned locally:

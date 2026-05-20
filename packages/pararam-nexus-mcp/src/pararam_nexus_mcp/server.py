@@ -23,10 +23,6 @@ logger = logging.getLogger(__name__)
 LIMITED_MODE_TOOLS: frozenset[str] = frozenset(
     {
         # Chat operations
-        # NOTE: 'search_chats' is intentionally NOT in the limited allow-list.
-        # The /core/chat/search endpoint demands a `session_id` field whose
-        # source is undocumented for service tokens; the call 400s without it.
-        # Re-add once the team documents the session_id mechanism.
         'get_chat',
         'create_private_chat',
         'create_group_chat',
