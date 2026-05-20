@@ -11,6 +11,7 @@ import sys
 from fastmcp import FastMCP
 
 from pararam_nexus_mcp.config import config
+from pararam_nexus_mcp.formatting import PARARAM_FORMATTING_GUIDE, PARARAM_FORMATTING_REFERENCE
 from pararam_nexus_mcp.tools.chats import register_chat_tools
 from pararam_nexus_mcp.tools.posts import register_post_tools
 from pararam_nexus_mcp.tools.users import register_user_tools
@@ -44,8 +45,20 @@ LIMITED_MODE_TOOLS: frozenset[str] = frozenset(
 # Initialize FastMCP server
 mcp = FastMCP(
     name=config.mcp_server_name,
-    instructions=config.mcp_server_instructions,
+    instructions=f'{config.mcp_server_instructions}\n\n{PARARAM_FORMATTING_GUIDE}',
 )
+
+
+@mcp.resource(
+    'pararam://formatting',
+    name='pararam_message_formatting',
+    title='Pararam Message Formatting',
+    description='Full Pararam message formatting reference for composing send_message and edit_post text.',
+    mime_type='text/markdown',
+)
+def pararam_message_formatting() -> str:
+    """Return the full Pararam message formatting reference."""
+    return PARARAM_FORMATTING_REFERENCE
 
 
 async def _prune_to_limited_tools(server: FastMCP[None]) -> list[str]:

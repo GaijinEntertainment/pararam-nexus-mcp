@@ -131,6 +131,14 @@ Send a message to a chat.
 - `text` (str): Message text to send
 - `reply_to_message_id` (str, optional): Post number to reply to
 
+**Message Formatting:**
+Pararam supports Markdown-like text, but does not support Markdown headings (`#`, `##`, `###`).
+Use `**bold**` section titles instead. Use colors as `[#RRGGBB](text)`;
+colored bullet example: `[#2E7D32](●)`. Keep tables simple because colors may not render inside
+table cells. Use `@all`, `@online`, `@admin`, and `@groups` only when the user explicitly asks
+for broad notification, and ask for explicit confirmation before sending such mentions.
+See `docs/PARARAM_FORMATTING.md` for the full syntax.
+
 **Returns:**
 `ToolResponse[SendMessagePayload]` with payload containing:
 - `post_no`: ID of the sent message

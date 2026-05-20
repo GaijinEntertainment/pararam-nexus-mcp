@@ -62,6 +62,14 @@ Send a message to a chat with optional reply and quote functionality.
 - `reply_to_message_id` (optional): Post number to reply to
 - `quote_text` (optional): Text to quote from the replied message (only used with `reply_to_message_id`)
 
+**Message formatting:**
+Pararam supports Markdown-like text, but does not support Markdown headings (`#`, `##`, `###`).
+Use `**bold**` section titles instead. Use colors as `[#RRGGBB](text)`;
+colored bullet example: `[#2E7D32](●)`. Keep tables simple because colors may not render inside
+table cells. Use `@all`, `@online`, `@admin`, and `@groups` only when the user explicitly asks
+for broad notification, and ask for explicit confirmation before sending such mentions.
+See [docs/PARARAM_FORMATTING.md](docs/PARARAM_FORMATTING.md) for the full syntax.
+
 **Examples:**
 ```python
 # Simple message

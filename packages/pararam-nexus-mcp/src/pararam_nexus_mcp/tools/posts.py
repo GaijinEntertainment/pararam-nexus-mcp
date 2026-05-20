@@ -494,6 +494,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
         """
         Send a message to a chat.
 
+        Message formatting: Pararam supports Markdown-like text, but not Markdown headings.
+        Use **bold** section titles instead. Use colors as [#RRGGBB](text);
+        colored bullet example: [#2E7D32](●). Keep tables simple because colors
+        may not render inside table cells. Use @all, @online, @admin, and @groups
+        only when the user explicitly asks for broad notification; ask for explicit
+        confirmation before sending such mentions. See pararam://formatting for full syntax.
+
         Args:
             chat_id: ID of the chat to send message to
             text: Message text to send
@@ -1618,6 +1625,13 @@ def register_post_tools(mcp: FastMCP[None]) -> None:
         reply_no: int | None = None,
     ) -> ToolResponse[EditPostPayload | None]:
         """Edit an existing post.
+
+        Message formatting: Pararam supports Markdown-like text, but not Markdown headings.
+        Use **bold** section titles instead. Use colors as [#RRGGBB](text);
+        colored bullet example: [#2E7D32](●). Keep tables simple because colors
+        may not render inside table cells. Use @all, @online, @admin, and @groups
+        only when the user explicitly asks for broad notification; ask for explicit
+        confirmation before sending such mentions. See pararam://formatting for full syntax.
 
         Args:
             chat_id: Numeric chat ID.
