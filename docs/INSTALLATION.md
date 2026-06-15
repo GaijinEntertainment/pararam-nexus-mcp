@@ -200,14 +200,18 @@ Set either `PARARAM_LOGIN`/`PARARAM_PASSWORD` or `PARARAM_USER_TOKEN`, not both.
 
 ### Cookie Storage
 
-In full mode, the MCP server automatically manages authentication sessions using cookies stored in:
+In full mode, the MCP server automatically manages authentication sessions using a cookie file
+stored in the per-user data directory:
 
 ```
-~/.pararam_cookies.json
+Linux:   ~/.local/share/pararam-nexus-mcp/cookies.json
+macOS:   ~/Library/Application Support/pararam-nexus-mcp/cookies.json
+Windows: %LOCALAPPDATA%\pararam-nexus-mcp\cookies.json
 ```
 
-This file is automatically created and maintained. You don't need to manage it manually.
-Limited mode does not use cookie storage.
+The directory is created with `0700` and the file with `0600` permissions. Override the location
+with `PARARAM_COOKIE_FILE` (absolute path). This file is created and maintained automatically — you
+don't need to manage it. Limited mode does not use cookie storage.
 
 **Security Note:** This file contains sensitive session data. Keep it secure and don't commit it to version control.
 

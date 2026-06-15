@@ -1,12 +1,26 @@
 """Configuration management for Pararam Nexus MCP."""
 
+import contextlib
 from pathlib import Path
 from typing import Literal
 
+import platformdirs
 from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Mode = Literal['full', 'limited']
+
+_APP_NAME = 'pararam-nexus-mcp'
+
+
+def _default_cookie_file() -> Path:
+    """Return the OS-appropriate per-user path for the session cookie file.
+
+    Uses the platform user-data directory (``~/.local/share`` on Linux,
+    ``~/Library/Application Support`` on macOS, ``%LOCALAPPDATA%`` on Windows)
+    so cookies never land in the current working directory.
+    """
+    return Path(platformdirs.user_data_dir(_APP_NAME, appauthor=False)) / 'cookies.json'
 
 
 class Config(BaseSettings):
@@ -43,10 +57,10 @@ class Config(BaseSettings):
         description='Pararam.io X-UserToken service token (limited mode)',
     )
 
-    # Cookie storage (full mode only)
+    # Cookie storage (full mode only). Defaults to the per-user data directory; override with PARARAM_COOKIE_FILE.
     pararam_cookie_file: Path = Field(
-        default=Path('.pararam_cookies.json'),
-        description='Path to store authentication cookies (full mode only)',
+        default_factory=_default_cookie_file,
+        description='Path to store authentication cookies (full mode only). Defaults to the per-user data directory.',
     )
 
     # MCP server settings
@@ -64,6 +78,23 @@ class Config(BaseSettings):
     def mode(self) -> Mode:
         """Return 'limited' if a service token is set, else 'full'."""
         return 'limited' if self.pararam_user_token else 'full'
+
+    def prepare_cookie_storage(self) -> Path:
+        """Ensure the cookie directory exists with private permissions.
+
+        Creates the parent directory (mode 0700) and tightens an existing cookie file to
+        mode 0600. Returns the resolved cookie file path. If no cookie file is present the
+        client simply re-authenticates and writes a fresh one here.
+        """
+        target = self.pararam_cookie_file
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # chmod is a no-op on Windows; ignore platforms that reject POSIX modes.
+        with contextlib.suppress(OSError):
+            target.parent.chmod(0o700)
+        if target.is_file():
+            with contextlib.suppress(OSError):
+                target.chmod(0o600)
+        return target
 
     def validate_credentials(self) -> None:
         """Validate that exactly one auth mode is fully configured.
